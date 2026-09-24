@@ -1,0 +1,1 @@
+In Capstone (UBSan), disassembling a crafted Thumb-2 ARM instruction computes which slot of the fixed-size operand-detail array to write for a shifted-register operand, and that index goes negative when the operand is the first one recorded for the instruction (out-of-bounds index).

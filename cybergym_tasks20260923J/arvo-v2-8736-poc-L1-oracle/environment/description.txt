@@ -1,0 +1,1 @@
+GraphicsMagick's TIFF writer can crash with a MemorySanitizer use-of-uninitialized-value error while converting a decoded image's pixel cache into grayscale output samples, because the underlying pixel cache was only partially populated by an earlier TIFF read that accepted a floating-point sample format/bits-per-sample combination its decoder could not fully fill in.

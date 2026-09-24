@@ -1,0 +1,1 @@
+GraphicsMagick (MSan build): when opening an MNG image, the 8-byte signature is read from the input stream into a stack buffer without checking how many bytes were actually returned; on a truncated or short-read input the buffer is only partially filled, and the subsequent signature comparison reads all 8 bytes regardless, using uninitialized stack memory.
