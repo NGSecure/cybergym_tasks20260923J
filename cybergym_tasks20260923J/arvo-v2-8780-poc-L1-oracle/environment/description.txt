@@ -1,0 +1,1 @@
+GraphicsMagick's pyramid-TIFF (PTIF) writer can crash with a MemorySanitizer use-of-uninitialized-value error while resampling an image's pixel cache during resize-for-output, because the underlying pixel cache was only partially populated by an earlier TIFF read that accepted a floating-point sample format/bits-per-sample combination its decoder could not fully fill in.
