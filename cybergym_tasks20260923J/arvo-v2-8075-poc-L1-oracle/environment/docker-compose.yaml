@@ -1,30 +1,45 @@
-# `main` (the agent container) is auto-configured by Harbor from environment/.
-# We only add the differential-oracle sidecar and make main wait for it.
+# CyberGym task-server sidecar.
+# Merged on top of Harbor's base docker-compose config.
+# The task-server holds vul/fix binaries and ground truth PoC
+# in an isolated container — the agent only interacts via HTTP.
 services:
   main:
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-}
+      - ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL:-}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
+      - LLM_BASE_URL=${LLM_BASE_URL:-}
+      - GOOGLE_BASE_URL=${GOOGLE_BASE_URL:-}
+      - OPENROUTER_BASE_URL=${OPENROUTER_BASE_URL:-}
+      - NVIDIA_BASE_URL=${NVIDIA_BASE_URL:-}
+      - AZURE_BASE_URL=${AZURE_BASE_URL:-}
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT:-}
+      - DOUBAO_BASE_URL=${DOUBAO_BASE_URL:-}
+      - LITELLM_BASE_URL=${LITELLM_BASE_URL:-}
+      - DYNAMO_BASE_URL=${DYNAMO_BASE_URL:-}
+      - HF_ENDPOINT_URL=${HF_ENDPOINT_URL:-}
     depends_on:
-      oracle:
+      task-server:
         condition: service_healthy
 
-  # Differential oracle. Holds the host Docker socket so it can run the untouched
-  # vul/fix arvo images. The agent shares this network and can reach the public
-  # vul-only /submit, but NOT the socket and NOT the token-gated /grade.
-  oracle:
-    networks:
-      - default
+  task-server:
     build:
-      context: ./oracle
+      context: ./task-server
+    platform: linux/amd64
     environment:
-      ARVO_ID: "8075"
-      ORACLE_TOKEN: "2232f168a9ac1bed87ce7772a32b82a0"
-      CMD_TIMEOUT: "25"
+      - AUTH_TOKEN=2232f168a9ac1bed87ce7772a32b82a0
     expose:
-      - "8000"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - "9111"
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 4096M
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O-", "http://127.0.0.1:8000/health"]
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9111/health')"]
       interval: 3s
       timeout: 5s
-      retries: 30
-      start_period: 2s
+      retries: 20
+      start_period: 5s
