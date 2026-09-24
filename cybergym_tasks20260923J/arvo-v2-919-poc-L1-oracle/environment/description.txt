@@ -1,0 +1,1 @@
+A bug in OTS (OpenType Sanitiser, ASan heap-use-after-free read) occurs while validating and rewriting a crafted WOFF font: a scratch buffer holding one table's decompressed bytes is freed before those bytes are copied into the sanitized output stream, so a later write dereferences the already-freed memory.

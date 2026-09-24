@@ -1,0 +1,30 @@
+# `main` (the agent container) is auto-configured by Harbor from environment/.
+# We only add the differential-oracle sidecar and make main wait for it.
+services:
+  main:
+    depends_on:
+      oracle:
+        condition: service_healthy
+
+  # Differential oracle. Holds the host Docker socket so it can run the untouched
+  # vul/fix arvo images. The agent shares this network and can reach the public
+  # vul-only /submit, but NOT the socket and NOT the token-gated /grade.
+  oracle:
+    networks:
+      - default
+    build:
+      context: ./oracle
+    environment:
+      ARVO_ID: "888"
+      ORACLE_TOKEN: "f0a0b125f1afc2ddce4b541dcf5f8d4a"
+      CMD_TIMEOUT: "25"
+    expose:
+      - "8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://127.0.0.1:8000/health"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+      start_period: 2s

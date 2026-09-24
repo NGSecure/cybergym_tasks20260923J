@@ -1,0 +1,1 @@
+A bug in Little-CMS/lcms (ASan heap-buffer-overflow read) surfaces when a crafted ICC profile is evaluated: the channel count recorded when the color lookup-table tag is read is allowed to disagree with the channel count implied by the table actually built, and nothing rejects the mismatch before the interpolation step indexes the table with the unvalidated count.

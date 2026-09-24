@@ -1,0 +1,1 @@
+A bug in LibreOffice (ASan container-overflow read) occurs while importing a legacy binary presentation document containing a table: a row/column position that no longer matches the table's currently-allocated dimensions is used to look up per-cell border-line data, indexing a C++ vector-of-vectors past its valid range.

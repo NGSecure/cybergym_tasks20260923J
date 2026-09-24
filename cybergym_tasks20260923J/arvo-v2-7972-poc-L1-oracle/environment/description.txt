@@ -1,0 +1,33 @@
+ImageMagick's MVG (Magick Vector Graphics) interpreter, while scan-converting a filled/stroked
+polygon-style primitive whose shape is given as an explicit list of coordinate points, builds an
+internal per-scanline path representation for that primitive inside a routine that both sizes and
+fills a heap buffer for the resulting path entries in a single call.
+
+Root cause: the routine first walks the primitive's point list once to count how many path entries
+the conversion will need, allocates a heap buffer sized for exactly that count, and then walks the
+point list a second time to actually emit the entries -- one per point, plus extra entries for
+implicit closing/transition steps that the shape requires. For certain point-list shapes the number
+of entries the second pass actually produces is a few more than the first pass counted, so by the
+time the last entries are emitted, the write index has run past the last valid slot in the
+just-allocated buffer; a small (4-byte) field belonging to that one-too-many entry lands a few bytes
+beyond the buffer's end, immediately inside the heap redzone. Both the under-counting pass and the
+overflowing write happen in the same function, and the whole sequence is driven purely by parsing
+and drawing the MVG document's primitive commands -- no separate image decode step is involved. The
+crash is reached through a thread-local-storage helper that lazily builds one of these path-derived
+resources per rendering thread the first time a polygon-style primitive is drawn, so it fires on the
+very first polygon primitive the document contains.
+
+Is the fix plausible for this crash: no. The associated patch does not touch the counting/allocation
+pass or the emission loop that produces the overflowing write, nor anything else in the call chain
+that reaches a polygon primitive's scan-conversion (the primitive-drawing entry point, the polygon-
+specific dispatcher, or the per-thread resource helper above it). Everything the patch actually
+changes is concentrated in a different, unrelated area of the same source file: how a named clip
+path referenced from a document is looked up and rendered into a standalone mask image, plus the
+lifecycle (clone/destroy) of a newly added mask handle on the drawing-context structure, plus a
+rename of the lookup helper used for that feature. None of the touched code paths execute on the way
+to drawing a plain polygon primitive with no clip-path attribute involved. This id's fix_files
+happens to share a source file with the crash purely because both live in the drawing module's
+largest source file, which is otherwise unrelated to this specific defect (fix_crash_overlap here is
+a same-file coincidence, not a same-mechanism match). The real fix for this overflow is most likely
+one of the other commits bundled into the same multi-commit range that ClusterFuzz used to mark this
+bug fixed, not the single commit recorded as fix_commit.

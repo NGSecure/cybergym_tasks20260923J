@@ -1,0 +1,1 @@
+A bug in LibreOffice (ASan heap-use-after-free read) occurs while importing a legacy PowerPoint presentation: one slide shape object is freed partway through the drawing-import routine while an earlier-built structure still holds a stale reference to it, and a later step that resolves relationships between shapes dereferences that dangling reference.

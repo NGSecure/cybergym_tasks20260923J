@@ -1,0 +1,1 @@
+A use-of-uninitialized-value in the file utility's CDF parser (MSan): while reading the property/summary-information stream of a Compound Document (legacy MS Office) file, a dynamically grown array is left with entries whose bytes were never initialized before later code consumes them.

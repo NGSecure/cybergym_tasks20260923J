@@ -1,0 +1,1 @@
+A bug in LibreOffice (ASan heap-buffer-overflow read) occurs while importing a legacy PowerPoint presentation: a paragraph's outline-indentation depth taken from the document indexes a fixed-size per-level bullet-formatting table without any bounds check, so an out-of-range depth reads outside the table.
