@@ -1,0 +1,1 @@
+In PCRE2 (ASan), compiling a crafted regular expression runs an auto-possessification scan over the compiled opcode stream that mishandles one particular verb's argument, so it walks one byte past the end of the opcode buffer (heap overflow read).
