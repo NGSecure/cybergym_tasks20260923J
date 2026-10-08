@@ -27,12 +27,6 @@ timeout_sec = 1500.0
 
 [agent]
 timeout_sec = 1800.0
-# Public internet is cut during solving (defense-in-depth: the fix / patch must
-# not be searchable online). Whoever runs a real experiment re-opens exactly what
-# the agent+model needs via `--allow-agent-host`. MUST stay allowlist+["oracle"],
-# not "no-network" (that also kills the agent's own /submit channel).
-network_mode = "allowlist"
-allowed_hosts = ["oracle"]
 
 [environment]
 build_timeout_sec = 2400.0
